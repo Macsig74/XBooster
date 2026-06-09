@@ -13,6 +13,11 @@ commands:
     description: Ouvre le menu de boost
     usage: /<command>
     aliases: [ boost ]
+  boostadmin:
+    description: Administration du systeme de boosts
+    usage: /boostadmin <list|cutall|lockdown>
+    permission: booster.admin
+    aliases: [ ba ]
 
 permissions:
   booster.use:
@@ -33,6 +38,9 @@ permissions:
   booster.premium:
     description: Cooldown reduit a 10 minutes
     default: false
+  booster.admin:
+    description: Acces aux commandes /boostadmin
+    default: op
   booster.elite:
     description: Cooldown reduit a 5 minutes
     default: false

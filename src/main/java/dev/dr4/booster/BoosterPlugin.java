@@ -1,5 +1,6 @@
 package dev.dr4.booster;
 
+import dev.dr4.booster.commands.BoostAdminCommand;
 import dev.dr4.booster.commands.BoosterCommand;
 import dev.dr4.booster.gui.BoosterGUI;
 import dev.dr4.booster.listeners.GUIListener;
@@ -21,7 +22,8 @@ public final class BoosterPlugin extends JavaPlugin {
     private EconomyManager economyManager;
     private BoosterGUI     boosterGUI;
 
-    private String licenseKey = "";
+    private String  licenseKey = "";
+    private volatile boolean lockdown = false;
 
     @Override
     public void onEnable() {
@@ -52,6 +54,13 @@ public final class BoosterPlugin extends JavaPlugin {
             cmd.setTabCompleter(executor);
         }
 
+        var adminCmd = getCommand("boostadmin");
+        if (adminCmd != null) {
+            BoostAdminCommand adminExecutor = new BoostAdminCommand(this);
+            adminCmd.setExecutor(adminExecutor);
+            adminCmd.setTabCompleter(adminExecutor);
+        }
+
         getServer().getPluginManager().registerEvents(new GUIListener(this), this);
     }
 
@@ -68,7 +77,7 @@ public final class BoosterPlugin extends JavaPlugin {
             saveResource("license.yml", false);
         }
         FileConfiguration cfg = YamlConfiguration.loadConfiguration(licenseFile);
-        licenseKey = cfg.getString("key", "XXXXX-XXXXX-XXXXX-XXXXX");
+        licenseKey = cfg.getString("license-key", "XXXXX-XXXXX-XXXXX-XXXXX");
     }
 
     public String          getLicenseKey()     { return licenseKey; }
@@ -77,4 +86,7 @@ public final class BoosterPlugin extends JavaPlugin {
     public LicenseManager  getLicenseManager() { return licenseManager; }
     public EconomyManager  getEconomyManager() { return economyManager; }
     public BoosterGUI      getBoosterGUI()     { return boosterGUI; }
+
+    public boolean isLockdown()               { return lockdown; }
+    public void    setLockdown(boolean state) { this.lockdown = state; }
 }

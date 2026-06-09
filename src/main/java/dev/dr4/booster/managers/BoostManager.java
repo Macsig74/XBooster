@@ -11,16 +11,21 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class BoostManager {
 
     private final BoosterPlugin plugin;
 
-    // UUID -> (boostId -> expiry timestamp in ms)
-    private final Map<UUID, Map<String, Long>> cooldowns = new HashMap<>();
+    // UUID -> (boostId -> cooldown expiry timestamp ms)
+    private final Map<UUID, Map<String, Long>> cooldowns = new ConcurrentHashMap<>();
+
+    // ── Active boost tracking (anti-cumul) ───────────────────────────────────
+    // Tracks which boost is currently active and when it expires.
+    // Only ONE boost can be active per player at a time.
+    private final Map<UUID, String> activeBoostId     = new ConcurrentHashMap<>();
+    private final Map<UUID, Long>   activeBoostExpiry = new ConcurrentHashMap<>();
 
     private File cooldownFile;
 
@@ -63,11 +68,6 @@ public class BoostManager {
         return remaining > 0 ? remaining / 1000L : 0;
     }
 
-    /**
-     * Returns the effective cooldown in seconds for this player,
-     * picking the shortest tier the player has permission for,
-     * or the default cooldown if no tier matches.
-     */
     public long getCooldownFor(Player player) {
         for (Map.Entry<String, Long> tier : plugin.getConfigManager().getCooldownTiers().entrySet()) {
             if (player.hasPermission(tier.getKey())) {
@@ -80,7 +80,7 @@ public class BoostManager {
     public void setCooldown(Player player, String boostId) {
         long durationMs = getCooldownFor(player) * 1000L;
         cooldowns
-                .computeIfAbsent(player.getUniqueId(), k -> new HashMap<>())
+                .computeIfAbsent(player.getUniqueId(), k -> new ConcurrentHashMap<>())
                 .put(boostId, System.currentTimeMillis() + durationMs);
     }
 
@@ -93,6 +93,73 @@ public class BoostManager {
         if (map != null) map.remove(boostId);
     }
 
+    // ── Active boost (anti-cumul) ─────────────────────────────────────────────
+
+    /**
+     * Returns true if the player currently has an active boost from this plugin.
+     * Automatically cleans up expired entries.
+     */
+    public boolean hasActiveBoost(Player player) {
+        UUID uuid = player.getUniqueId();
+        Long expiry = activeBoostExpiry.get(uuid);
+        if (expiry == null) return false;
+        if (System.currentTimeMillis() >= expiry) {
+            activeBoostId.remove(uuid);
+            activeBoostExpiry.remove(uuid);
+            return false;
+        }
+        return true;
+    }
+
+    /** Registers which boost is currently active for this player. */
+    private void registerActiveBoost(Player player, String boostId, long durationSeconds) {
+        UUID uuid = player.getUniqueId();
+        activeBoostId.put(uuid, boostId);
+        activeBoostExpiry.put(uuid, System.currentTimeMillis() + durationSeconds * 1000L);
+    }
+
+    /** Clears the active boost marker (used by cutall / logout). */
+    public void clearActiveBoost(UUID uuid) {
+        activeBoostId.remove(uuid);
+        activeBoostExpiry.remove(uuid);
+    }
+
+    /**
+     * Removes all active boost potion effects from the player and clears the tracker.
+     * Used by /boostadmin cutall.
+     */
+    public void removeActiveBoostEffects(Player player) {
+        clearActiveBoost(player.getUniqueId());
+        for (ConfigManager.BoostConfig boost : plugin.getConfigManager().getBoosts().values()) {
+            PotionEffectType type = Registry.EFFECT.get(NamespacedKey.minecraft(boost.effect.toLowerCase()));
+            if (type != null) player.removePotionEffect(type);
+        }
+    }
+
+    /**
+     * Returns remaining active boost time in seconds (0 if none).
+     */
+    public long getRemainingActiveBoost(UUID uuid) {
+        Long expiry = activeBoostExpiry.get(uuid);
+        if (expiry == null) return 0;
+        long remaining = expiry - System.currentTimeMillis();
+        return remaining > 0 ? remaining / 1000L : 0;
+    }
+
+    /** Active boost ID → player UUID map (read-only view, for /boostadmin list). */
+    public Map<UUID, String> getActiveBoostIds() {
+        // Clean expired first
+        long now = System.currentTimeMillis();
+        activeBoostExpiry.entrySet().removeIf(e -> {
+            if (e.getValue() <= now) {
+                activeBoostId.remove(e.getKey());
+                return true;
+            }
+            return false;
+        });
+        return Collections.unmodifiableMap(activeBoostId);
+    }
+
     // ── Effect application ────────────────────────────────────────────────────
 
     public boolean applyBoost(Player player, ConfigManager.BoostConfig cfg) {
@@ -102,7 +169,11 @@ public class BoostManager {
             return false;
         }
         int durationTicks = (int) (cfg.durationSeconds * 20L);
-        player.addPotionEffect(new PotionEffect(type, durationTicks, cfg.amplifier, false, true, true));
+        // ambient=false, particles=false, icon=true — effet visible dans l'inventaire
+        // mais SANS particules autour du joueur
+        player.addPotionEffect(new PotionEffect(type, durationTicks, cfg.amplifier, false, false, true));
+
+        registerActiveBoost(player, cfg.id, cfg.durationSeconds);
         return true;
     }
 
@@ -132,16 +203,12 @@ public class BoostManager {
         for (String uuidStr : yml.getKeys(false)) {
             try {
                 UUID uuid = UUID.fromString(uuidStr);
-                Map<String, Long> map = new HashMap<>();
+                Map<String, Long> map = new ConcurrentHashMap<>();
                 for (String boostId : yml.getConfigurationSection(uuidStr).getKeys(false)) {
                     long expiry = yml.getLong(uuidStr + "." + boostId);
-                    if (expiry > now) {
-                        map.put(boostId, expiry);
-                    }
+                    if (expiry > now) map.put(boostId, expiry);
                 }
-                if (!map.isEmpty()) {
-                    cooldowns.put(uuid, map);
-                }
+                if (!map.isEmpty()) cooldowns.put(uuid, map);
             } catch (IllegalArgumentException ignored) {}
         }
     }

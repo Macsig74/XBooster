@@ -84,64 +84,7 @@
                 </executions>
             </plugin>
 
-            <!-- 3 ─ ProGuard (obfuscates the shaded jar in-place) -->
-            <plugin>
-                <groupId>com.github.wvengen</groupId>
-                <artifactId>proguard-maven-plugin</artifactId>
-                <version>2.6.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals><goal>proguard</goal></goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <injar>${project.build.finalName}.jar</injar>
-                    <outjar>${project.build.finalName}.jar</outjar>
-                    <outputDirectory>${project.build.directory}</outputDirectory>
-                    <obfuscate>true</obfuscate>
-                    <options>
-                        <option>-dontoptimize</option>
-                        <option>-dontshrink</option>
-                        <option>-dontwarn</option>
-                        <option>-ignorewarnings</option>
-                        <option>-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod,LineNumberTable,SourceFile</option>
-
-                        <!-- ── Bukkit entry points called by reflection ── -->
-
-                        <!-- Main plugin class: Bukkit instantiates it by name from plugin.yml -->
-                        <option>-keep public class dev.dr4.booster.BoosterPlugin { public protected *; }</option>
-
-                        <!-- Event handlers: called by Bukkit via reflection on @EventHandler methods -->
-                        <option>-keepclassmembers class * { @org.bukkit.event.EventHandler public void *(...); }</option>
-
-                        <!-- Interfaces Bukkit calls through: keep the impl classes + their interface methods -->
-                        <option>-keep class * extends org.bukkit.plugin.java.JavaPlugin</option>
-                        <option>-keep class * implements org.bukkit.event.Listener { public void *(...); }</option>
-                        <option>-keep class * implements org.bukkit.command.CommandExecutor { public boolean onCommand(...); }</option>
-                        <option>-keep class * implements org.bukkit.command.TabCompleter { public java.util.List onTabComplete(...); }</option>
-
-                        <!-- Config inner classes accessed by name from YAML keys -->
-                        <option>-keepclassmembers class dev.dr4.booster.managers.ConfigManager$* { *; }</option>
-                    </options>
-                    <libs>
-                        <lib>${java.home}/jmods</lib>
-                    </libs>
-                </configuration>
-                <!-- ProGuard dependencies at plugin level (not inside <configuration>) -->
-                <dependencies>
-                    <dependency>
-                        <groupId>com.guardsquare</groupId>
-                        <artifactId>proguard-base</artifactId>
-                        <version>7.6.1</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>com.guardsquare</groupId>
-                        <artifactId>proguard-core</artifactId>
-                        <version>9.1.3</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
+            <!-- ProGuard supprime — jar non-obfusque, noms lisibles dans Spark -->
         </plugins>
 
         <resources>

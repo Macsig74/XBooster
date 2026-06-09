@@ -296,6 +296,8 @@ messages:
   reset-success: '&#00FF00Ton cooldown a ete reinitialise!'
   no-money: '&#FF0000Solde insuffisant. Il te faut &#FF5500{cost} shards &#FF0000pour reset ton cooldown.'
   shards-unavailable: '&#FF0000DonutShards n''est pas disponible sur ce serveur.'
+  boost-already-active: '&#FF005DTu as deja un boost actif! Attends qu''il expire.'
+  lockdown-active: '&#FF0000Le systeme de boosts est verrouille par un administrateur.'
   no-permission: '&#FF0000Tu n''as pas la permission d''utiliser ca.'
   reload-success: '&#00FF00Plugin rechargé avec succes.'
   player-not-found: '&#FF0000Joueur introuvable.'

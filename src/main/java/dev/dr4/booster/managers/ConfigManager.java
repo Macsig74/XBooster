@@ -27,6 +27,8 @@ public class ConfigManager {
     private String msgResetSuccess;
     private String msgNoMoney;
     private String msgShardsUnavailable;
+    private String msgBoostAlreadyActive;
+    private String msgLockdown;
     private String msgNoPermission;
     private String msgReloadSuccess;
     private String msgPlayerNotFound;
@@ -94,7 +96,9 @@ public class ConfigManager {
         msgCooldownActive = cfg.getString("messages.cooldown-active", "Attends {remaining}.");
         msgResetSuccess = cfg.getString("messages.reset-success", "Cooldown reinitialise!");
         msgNoMoney = cfg.getString("messages.no-money", "&#FF0000Solde insuffisant. Il te faut {cost} shards.");
-        msgShardsUnavailable = cfg.getString("messages.shards-unavailable", "&#FF0000DonutShards n'est pas disponible sur ce serveur.");
+        msgShardsUnavailable  = cfg.getString("messages.shards-unavailable",  "&#FF0000DonutShards n'est pas disponible sur ce serveur.");
+        msgBoostAlreadyActive = cfg.getString("messages.boost-already-active", "&#FF005DTu as deja un boost actif!");
+        msgLockdown           = cfg.getString("messages.lockdown-active",      "&#FF0000Le systeme de boosts est verrouille par un admin.");
         msgNoPermission = cfg.getString("messages.no-permission", "Permission refusee.");
         msgReloadSuccess = cfg.getString("messages.reload-success", "Plugin rechargé.");
         msgPlayerNotFound = cfg.getString("messages.player-not-found", "Joueur introuvable.");
@@ -134,6 +138,8 @@ public class ConfigManager {
     public String getMsgResetSuccess()     { return msgResetSuccess; }
     public String getMsgNoMoney()              { return msgNoMoney; }
     public String getMsgShardsUnavailable()    { return msgShardsUnavailable; }
+    public String getMsgBoostAlreadyActive()   { return msgBoostAlreadyActive; }
+    public String getMsgLockdown()             { return msgLockdown; }
     public String getMsgNoPermission()     { return msgNoPermission; }
     public String getMsgReloadSuccess(){ return msgReloadSuccess; }
     public String getMsgPlayerNotFound(){ return msgPlayerNotFound; }

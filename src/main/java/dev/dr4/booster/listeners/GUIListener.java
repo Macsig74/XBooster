@@ -28,9 +28,7 @@ public class GUIListener implements Listener {
         event.setCancelled(true);
 
         if (event.getCurrentItem() == null) return;
-        int slot = event.getRawSlot();
-
-        handleClick(player, slot);
+        handleClick(player, event.getRawSlot());
     }
 
     private void handleClick(Player player, int slot) {
@@ -53,11 +51,19 @@ public class GUIListener implements Listener {
     private void handleBoost(Player player, ConfigManager.BoostConfig boost) {
         ConfigManager cfg = plugin.getConfigManager();
 
+        // 1. Permission
         if (!player.hasPermission("booster.use")) {
             player.sendMessage(cfg.getMsgPrefix() + ColorUtils.colorize(cfg.getMsgNoPermission()));
             return;
         }
 
+        // 2. Lockdown
+        if (plugin.isLockdown()) {
+            player.sendMessage(cfg.getMsgPrefix() + ColorUtils.colorize(cfg.getMsgLockdown()));
+            return;
+        }
+
+        // 3. Cooldown
         if (!player.hasPermission("booster.bypass") && plugin.getBoostManager().hasCooldown(player, boost.id)) {
             long remaining = plugin.getBoostManager().getRemainingCooldown(player, boost.id);
             String msg = cfg.formatMessage(cfg.getMsgCooldownActive(),
@@ -66,17 +72,24 @@ public class GUIListener implements Listener {
             return;
         }
 
+        // 4. Anti-cumul — un seul boost actif à la fois
+        if (!player.hasPermission("booster.bypass") && plugin.getBoostManager().hasActiveBoost(player)) {
+            player.sendMessage(cfg.getMsgPrefix() + ColorUtils.colorize(cfg.getMsgBoostAlreadyActive()));
+            return;
+        }
+
+        // 5. Apply
         if (!plugin.getBoostManager().applyBoost(player, boost)) return;
 
         plugin.getBoostManager().setCooldown(player, boost.id);
 
         String msg = cfg.formatMessage(cfg.getMsgBoostActivated(), Map.of(
-                "boost", ColorUtils.strip(boost.displayName),
+                "boost",    ColorUtils.strip(boost.displayName),
                 "duration", ColorUtils.formatTime(boost.durationSeconds)
         ));
         player.sendMessage(cfg.getMsgPrefix() + msg);
 
-        // Folia-safe: we are already on the player's region thread inside an event
+        // Folia-safe: already on the player's region thread inside an event
         plugin.getBoosterGUI().open(player);
     }
 
@@ -86,8 +99,7 @@ public class GUIListener implements Listener {
 
         // 1. DonutShards disponible ?
         if (!eco.isHooked()) {
-            player.sendMessage(cfg.getMsgPrefix()
-                    + ColorUtils.colorize(cfg.getMsgShardsUnavailable()));
+            player.sendMessage(cfg.getMsgPrefix() + ColorUtils.colorize(cfg.getMsgShardsUnavailable()));
             return;
         }
 
@@ -100,17 +112,16 @@ public class GUIListener implements Listener {
             return;
         }
 
-        // 3. Retrait — ShardsAPI.take() vérifie le solde atomiquement
+        // 3. Retrait
         if (!eco.withdraw(player, cost)) {
             player.sendMessage(cfg.getMsgPrefix()
                     + ColorUtils.colorize("&#FF0000Transaction echouee — solde insuffisant."));
             return;
         }
 
-        // 4. Tout est bon — on reset
+        // 4. Reset
         plugin.getBoostManager().resetAllCooldowns(player);
-        player.sendMessage(cfg.getMsgPrefix()
-                + ColorUtils.colorize(cfg.getMsgResetSuccess()));
+        player.sendMessage(cfg.getMsgPrefix() + ColorUtils.colorize(cfg.getMsgResetSuccess()));
 
         plugin.getBoosterGUI().open(player);
     }
