@@ -1,0 +1,303 @@
+# ============================================================
+#  Booster - Configuration
+#   Version 1.0.0
+# ============================================================
+
+# Parametres generaux
+settings:
+  # Cooldown par defaut en secondes (30 minutes = 1800)
+  cooldown: 1800
+  # Sauvegarder les cooldowns entre les redemarrages
+  save-cooldowns: true
+  # Afficher le temps restant en temps reel dans le lore
+  dynamic-lore: true
+
+  # Cooldowns reduits par permission (verifies du + prioritaire au moins prioritaire)
+  # Le plugin prend le cooldown le plus bas pour lequel le joueur a la permission.
+  cooldown-tiers:
+    booster.elite:   300    # 5 minutes
+    booster.premium: 600    # 10 minutes
+    booster.vip:     900    # 15 minutes
+
+# Configuration du GUI
+gui:
+  title: '🌊 Booster Menu'
+  size: 36
+
+# Commande principale
+command: 'booster'
+
+# ============================================================
+#  Boosts
+# ============================================================
+boosts:
+
+  speed:
+    enabled: true
+    slot: 11
+    material: IRON_BOOTS
+    display-name: '&#00C1FF🔥 &#00C1FF&lSPEED BOOST'
+    effect: SPEED
+    # Amplificateur: 0 = I, 1 = II, 2 = III
+    amplifier: 2
+    # Duree en secondes (3 minutes = 180)
+    duration: 180
+    lore:
+      - '&8Description'
+      - ''
+      - '&#00C1FFInformation:'
+      - '&fYou can active a special boost'
+      - '&fevery 30 minutes.'
+      - ''
+      - '&#FF005D⌚ &fCooldown: {cooldown}'
+      - '&#FFE89D⌛ &fDuration: &#FFE89D3 Minutes'
+      - '&#00C1FF⚑ &fEffect: &#00C1FFSpeed III'
+      - ''
+      - '&#FBE401▶ &#FBE401&l&nCLICK&#FBE401 to Activate'
+    glow: true
+
+  strength:
+    enabled: true
+    slot: 12
+    material: DIAMOND_SWORD
+    display-name: '&#FF7200🗡 &#FF7200&lSTRENGTH BOOST'
+    effect: STRENGTH
+    amplifier: 2
+    # Duree en secondes (3 minutes = 180)
+    duration: 180
+    lore:
+      - '&8Description'
+      - ''
+      - '&#00C1FFInformation:'
+      - '&fYou can active a special boost'
+      - '&fevery 30 minutes.'
+      - ''
+      - '&#FF005D⌚ &fCooldown: {cooldown}'
+      - '&#FFE89D⌛ &fDuration: &#FFE89D3 Minutes'
+      - '&#00C1FF⚑ &fEffect: &#00C1FFStrength III'
+      - ''
+      - '&#FBE401▶ &#FBE401&l&nCLICK&#FBE401 to Activate'
+    glow: true
+
+  regeneration:
+    enabled: true
+    slot: 13
+    material: REDSTONE
+    display-name: '&#FF0000❤ &#FF0000&lREGENERATION BOOST'
+    effect: REGENERATION
+    amplifier: 1
+    # Duree en secondes (1:30 minutes = 90)
+    duration: 90
+    lore:
+      - '&8Description'
+      - ''
+      - '&#00C1FFInformation:'
+      - '&fYou can active a special boost'
+      - '&fevery 30 minutes.'
+      - ''
+      - '&#FF005D⌚ &fCooldown: {cooldown}'
+      - '&#FFE89D⌛ &fDuration: &#FFE89D1:30 Minutes'
+      - '&#00C1FF⚑ &fEffect: &#00C1FFRegeneration II'
+      - ''
+      - '&#FBE401▶ &#FBE401&l&nCLICK&#FBE401 to Activate'
+    glow: true
+
+  haste:
+    enabled: true
+    slot: 14
+    material: GOLDEN_PICKAXE
+    display-name: '&#FFEE00⛏ &#FFEE00&lHASTE BOOST'
+    effect: HASTE
+    amplifier: 2
+    # Duree en secondes (5 minutes = 300)
+    duration: 300
+    lore:
+      - '&8Description'
+      - ''
+      - '&#00C1FFInformation:'
+      - '&fYou can active a special boost'
+      - '&fevery 30 minutes.'
+      - ''
+      - '&#FF005D⌚ &fCooldown: {cooldown}'
+      - '&#FFE89D⌛ &fDuration: &#FFE89D5 Minutes'
+      - '&#00C1FF⚑ &fEffect: &#00C1FFHaste III'
+      - ''
+      - '&#FBE401▶ &#FBE401&l&nCLICK&#FBE401 to Activate'
+    glow: true
+
+  jump-boost:
+    enabled: true
+    slot: 15
+    material: WIND_CHARGE
+    display-name: '&#CACACA↑ &#CACACA&lJUMP BOOST'
+    effect: JUMP_BOOST
+    amplifier: 2
+    # Duree en secondes (3 minutes = 180)
+    duration: 180
+    lore:
+      - '&8Description'
+      - ''
+      - '&#00C1FFInformation:'
+      - '&fYou can active a special boost'
+      - '&fevery 30 minutes.'
+      - ''
+      - '&#FF005D⌚ &fCooldown: {cooldown}'
+      - '&#FFE89D⌛ &fDuration: &#FFE89D3 Minutes'
+      - '&#00C1FF⚑ &fEffect: &#00C1FFJump Boost III'
+      - ''
+      - '&#FBE401▶ &#FBE401&l&nCLICK&#FBE401 to Activate'
+    glow: true
+
+  slow-falling:
+    enabled: true
+    slot: 20
+    material: FEATHER
+    display-name: '&#E0E0FF🪶 &#E0E0FF&lSLOW FALLING BOOST'
+    effect: SLOW_FALLING
+    amplifier: 0
+    # Duree en secondes (2 minutes = 120)
+    duration: 120
+    lore:
+      - '&8Description'
+      - ''
+      - '&#00C1FFInformation:'
+      - '&fYou can active a special boost'
+      - '&fevery 30 minutes.'
+      - ''
+      - '&#FF005D⌚ &fCooldown: {cooldown}'
+      - '&#FFE89D⌛ &fDuration: &#FFE89D2 Minutes'
+      - '&#00C1FF⚑ &fEffect: &#00C1FFSlow Falling I'
+      - ''
+      - '&#FBE401▶ &#FBE401&l&nCLICK&#FBE401 to Activate'
+    glow: true
+
+  luck:
+    enabled: true
+    slot: 21
+    material: RABBIT_FOOT
+    display-name: '&#FFD700🍀 &#FFD700&lLUCK BOOST'
+    effect: LUCK
+    amplifier: 0
+    # Duree en secondes (2 minutes = 120)
+    duration: 120
+    lore:
+      - '&8Description'
+      - ''
+      - '&#00C1FFInformation:'
+      - '&fYou can active a special boost'
+      - '&fevery 30 minutes.'
+      - ''
+      - '&#FF005D⌚ &fCooldown: {cooldown}'
+      - '&#FFE89D⌛ &fDuration: &#FFE89D2 Minutes'
+      - '&#00C1FF⚑ &fEffect: &#00C1FFLuck I'
+      - ''
+      - '&#FBE401▶ &#FBE401&l&nCLICK&#FBE401 to Activate'
+    glow: true
+
+  fire-resistance:
+    enabled: true
+    slot: 22
+    material: BLAZE_POWDER
+    display-name: '&#FF6600🔥 &#FF6600&lFIRE RESISTANCE BOOST'
+    effect: FIRE_RESISTANCE
+    amplifier: 0
+    # Duree en secondes (2 minutes = 120)
+    duration: 120
+    lore:
+      - '&8Description'
+      - ''
+      - '&#00C1FFInformation:'
+      - '&fYou can active a special boost'
+      - '&fevery 30 minutes.'
+      - ''
+      - '&#FF005D⌚ &fCooldown: {cooldown}'
+      - '&#FFE89D⌛ &fDuration: &#FFE89D2 Minutes'
+      - '&#00C1FF⚑ &fEffect: &#00C1FFFire Resistance I'
+      - ''
+      - '&#FBE401▶ &#FBE401&l&nCLICK&#FBE401 to Activate'
+    glow: true
+
+  water-breathing:
+    enabled: true
+    slot: 23
+    material: PUFFERFISH
+    display-name: '&#00AAFF🐡 &#00AAFF&lWATER BREATHING BOOST'
+    effect: WATER_BREATHING
+    amplifier: 0
+    # Duree en secondes (2 minutes = 120)
+    duration: 120
+    lore:
+      - '&8Description'
+      - ''
+      - '&#00C1FFInformation:'
+      - '&fYou can active a special boost'
+      - '&fevery 30 minutes.'
+      - ''
+      - '&#FF005D⌚ &fCooldown: {cooldown}'
+      - '&#FFE89D⌛ &fDuration: &#FFE89D2 Minutes'
+      - '&#00C1FF⚑ &fEffect: &#00C1FFWater Breathing I'
+      - ''
+      - '&#FBE401▶ &#FBE401&l&nCLICK&#FBE401 to Activate'
+    glow: true
+
+  invisibility:
+    enabled: true
+    slot: 24
+    material: GLASS_BOTTLE
+    display-name: '&#AAAAAA👁 &#AAAAAA&lINVISIBILITY BOOST'
+    effect: INVISIBILITY
+    amplifier: 0
+    # Duree en secondes (2 minutes = 120, max autorise)
+    duration: 120
+    lore:
+      - '&8Description'
+      - ''
+      - '&#00C1FFInformation:'
+      - '&fYou can active a special boost'
+      - '&fevery 30 minutes.'
+      - ''
+      - '&#FF005D⌚ &fCooldown: {cooldown}'
+      - '&#FFE89D⌛ &fDuration: &#FFE89D2 Minutes'
+      - '&#00C1FF⚑ &fEffect: &#00C1FFInvisibility I'
+      - ''
+      - '&#FBE401▶ &#FBE401&l&nCLICK&#FBE401 to Activate'
+    glow: true
+
+# ============================================================
+#  Reset du cooldown
+# ============================================================
+reset-cooldown:
+  enabled: true
+  slot: 31
+  material: LIME_DYE
+  display-name: '&#00FF00&lRESET COOLDOWN'
+  # Cout en monnaie Vault (verif + retrait automatique via l'API Economy)
+  cost: 500.0
+  # Texte affiche dans le lore a la place de {cost}
+  cost-display: '&#FF258F500x'
+  lore:
+    - '&8Description'
+    - ''
+    - '&#00C1FFInformation:'
+    - '&fClick here, to buy'
+    - '&fa &#00FF00reset &ffor your cooldown.'
+    - ''
+    - '&#FF258F☆ &fShards: {cost}'
+    - ''
+    - '&#FBE401▶ &#FBE401&l&nCLICK&#FBE401 to Activate'
+
+# ============================================================
+#  Messages
+# ============================================================
+messages:
+  prefix: '&#00C1FF[Booster] &f'
+  boost-activated: '&#00C1FFBoost &#FFE89D{boost} &#00C1FFactive pour &#FFE89D{duration}&#00C1FF!'
+  cooldown-active: '&#FF005DTu dois attendre &#FF0000{remaining} &#FF005Davant de reUtiliser ce boost.'
+  reset-success: '&#00FF00Ton cooldown a ete reinitialise!'
+  no-money: '&#FF0000Solde insuffisant. Il te faut &#FF5500{cost} &#FF0000pour reset ton cooldown.'
+  vault-unavailable: '&#FF0000Vault n''est pas disponible sur ce serveur.'
+  no-permission: '&#FF0000Tu n''as pas la permission d''utiliser ca.'
+  reload-success: '&#00FF00Plugin rechargé avec succes.'
+  player-not-found: '&#FF0000Joueur introuvable.'
+  cooldown-ready: '&#00FF00Ready!'
+  cooldown-format: '&#FF0000{min}m {sec}s'

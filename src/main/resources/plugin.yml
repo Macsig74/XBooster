@@ -1,0 +1,38 @@
+name: Booster
+version: '${project.version}'
+main: dev.dr4.booster.BoosterPlugin
+api-version: '1.21'
+folia-supported: true
+authors: [ dr4 ]
+softdepend: [ Vault ]
+website: https://discord.gg/qhu3n47vaA
+description: Plugin de boost avec GUI configurable et systeme de licence.
+
+commands:
+  booster:
+    description: Ouvre le menu de boost
+    usage: /<command>
+    aliases: [ boost ]
+
+permissions:
+  booster.use:
+    description: Permet d'utiliser le menu de boost
+    default: true
+  booster.reload:
+    description: Permet de recharger le plugin
+    default: op
+  booster.resetcooldown:
+    description: Permet de reset le cooldown d'un joueur
+    default: op
+  booster.bypass:
+    description: Bypass le cooldown des boosts
+    default: op
+  booster.vip:
+    description: Cooldown reduit a 15 minutes
+    default: false
+  booster.premium:
+    description: Cooldown reduit a 10 minutes
+    default: false
+  booster.elite:
+    description: Cooldown reduit a 5 minutes
+    default: false

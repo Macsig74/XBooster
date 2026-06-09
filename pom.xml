@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>dev.dr4</groupId>
+    <artifactId>booster</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>Booster</name>
+    <description>Plugin de boost pour Minecraft 1.21.1 — Folia compatible</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.21.1-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Vault — economy API -->
+        <dependency>
+            <groupId>com.github.MilkBowl</groupId>
+            <artifactId>VaultAPI</artifactId>
+            <version>1.7.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <!--
+          FancyNpcs — soft depend, checked at runtime only.
+          If you need to recompile with FancyNpcs API types, uncomment the
+          block below and add https://repo.fancyplugins.de/releases as a repo.
+
+        <dependency>
+            <groupId>de.oliver</groupId>
+            <artifactId>FancyNpcs</artifactId>
+            <version>2.4.0</version>
+            <scope>provided</scope>
+        </dependency>
+        -->
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- 1 ─ Compile -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <compilerArgs>
+                        <arg>-proc:none</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+
+            <!-- 2 ─ Shade (fat-jar, replaces original jar) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>shade</goal></goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- 3 ─ ProGuard (obfuscates the shaded jar in-place) -->
+            <plugin>
+                <groupId>com.github.wvengen</groupId>
+                <artifactId>proguard-maven-plugin</artifactId>
+                <version>2.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>proguard</goal></goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <injar>${project.build.finalName}.jar</injar>
+                    <outjar>${project.build.finalName}.jar</outjar>
+                    <outputDirectory>${project.build.directory}</outputDirectory>
+                    <obfuscate>true</obfuscate>
+                    <options>
+                        <option>-dontoptimize</option>
+                        <option>-dontshrink</option>
+                        <option>-dontwarn</option>
+                        <option>-ignorewarnings</option>
+                        <option>-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod,LineNumberTable,SourceFile</option>
+
+                        <!-- ── Bukkit entry points called by reflection ── -->
+
+                        <!-- Main plugin class: Bukkit instantiates it by name from plugin.yml -->
+                        <option>-keep public class dev.dr4.booster.BoosterPlugin { public protected *; }</option>
+
+                        <!-- Event handlers: called by Bukkit via reflection on @EventHandler methods -->
+                        <option>-keepclassmembers class * { @org.bukkit.event.EventHandler public void *(...); }</option>
+
+                        <!-- Interfaces Bukkit calls through: keep the impl classes + their interface methods -->
+                        <option>-keep class * extends org.bukkit.plugin.java.JavaPlugin</option>
+                        <option>-keep class * implements org.bukkit.event.Listener { public void *(...); }</option>
+                        <option>-keep class * implements org.bukkit.command.CommandExecutor { public boolean onCommand(...); }</option>
+                        <option>-keep class * implements org.bukkit.command.TabCompleter { public java.util.List onTabComplete(...); }</option>
+
+                        <!-- Config inner classes accessed by name from YAML keys -->
+                        <option>-keepclassmembers class dev.dr4.booster.managers.ConfigManager$* { *; }</option>
+                    </options>
+                    <libs>
+                        <lib>${java.home}/jmods</lib>
+                    </libs>
+                </configuration>
+                <!-- ProGuard dependencies at plugin level (not inside <configuration>) -->
+                <dependencies>
+                    <dependency>
+                        <groupId>com.guardsquare</groupId>
+                        <artifactId>proguard-base</artifactId>
+                        <version>7.6.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>com.guardsquare</groupId>
+                        <artifactId>proguard-core</artifactId>
+                        <version>9.1.3</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
+</project>
