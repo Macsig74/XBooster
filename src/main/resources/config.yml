@@ -3,6 +3,9 @@
 #   Version 1.0.0
 # ============================================================
 
+# Cle de licence (obtenez une cle gratuite sur discord.gg/qhu3n47vaA)
+license-key: 'XXXXX-XXXXX-XXXXX-XXXXX'
+
 # Parametres generaux
 settings:
   # Cooldown par defaut en secondes (30 minutes = 1800)

@@ -8,11 +8,7 @@ import dev.dr4.booster.managers.BoostManager;
 import dev.dr4.booster.managers.ConfigManager;
 import dev.dr4.booster.managers.EconomyManager;
 import dev.dr4.booster.managers.LicenseManager;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.io.File;
 
 public final class BoosterPlugin extends JavaPlugin {
 
@@ -28,10 +24,11 @@ public final class BoosterPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        loadLicenseKey();
 
         configManager = new ConfigManager(this);
         configManager.reload();
+
+        licenseKey = getConfig().getString("license-key", "XXXXX-XXXXX-XXXXX-XXXXX");
 
         licenseManager = new LicenseManager(this);
         if (!licenseManager.authenticate()) {
@@ -69,15 +66,6 @@ public final class BoosterPlugin extends JavaPlugin {
         if (boostManager != null) {
             boostManager.save();
         }
-    }
-
-    private void loadLicenseKey() {
-        File licenseFile = new File(getDataFolder(), "license.yml");
-        if (!licenseFile.exists()) {
-            saveResource("license.yml", false);
-        }
-        FileConfiguration cfg = YamlConfiguration.loadConfiguration(licenseFile);
-        licenseKey = cfg.getString("license-key", "XXXXX-XXXXX-XXXXX-XXXXX");
     }
 
     public String          getLicenseKey()     { return licenseKey; }
