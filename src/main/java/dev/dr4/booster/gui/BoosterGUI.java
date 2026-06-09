@@ -46,15 +46,18 @@ public class BoosterGUI {
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
 
-        meta.setDisplayName(ColorUtils.colorize(boost.displayName));
+        // Display name pré-colorisé — pas de recolorisation
+        meta.setDisplayName(boost.colorizedDisplayName);
 
+        // Lore : lignes statiques déjà colorisées, uniquement {cooldown} est dynamique
         String cooldownText = plugin.getConfigManager().formatCooldownLore(remainingSeconds);
-        List<String> finalLore = new ArrayList<>();
-        for (String line : boost.lore) {
-            if (line.contains("{cooldown}")) {
-                finalLore.add(buildCooldownLine(line, cooldownText));
+        List<String> finalLore = new ArrayList<>(boost.staticLore.size());
+        for (int i = 0; i < boost.staticLore.size(); i++) {
+            String staticLine = boost.staticLore.get(i);
+            if (staticLine != null) {
+                finalLore.add(staticLine);                         // ligne statique précalculée
             } else {
-                finalLore.add(ColorUtils.colorize(line));
+                finalLore.add(buildCooldownLine(boost.cooldownTemplates.get(i), cooldownText));
             }
         }
         meta.setLore(finalLore);
@@ -70,6 +73,7 @@ public class BoosterGUI {
     }
 
     private String buildCooldownLine(String template, String cooldownText) {
+        // Seule cette ligne est construite dynamiquement à chaque ouverture
         String[] parts = template.split("\\{cooldown\\}", -1);
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < parts.length; i++) {

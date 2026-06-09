@@ -157,6 +157,17 @@ public class ConfigManager {
         public final long durationSeconds;
         public final boolean glow;
 
+        // ── Pré-calculés au chargement — jamais recolorisés à l'ouverture du GUI ──
+        /** Display name déjà colorisé. */
+        public final String colorizedDisplayName;
+        /**
+         * Lore pré-colorisé : les lignes sans {cooldown} sont finales,
+         * les lignes avec {cooldown} sont stockées brutes (null = ligne statique,
+         * non-null = template de la ligne dynamique).
+         */
+        public final List<String> staticLore;     // lignes colorisées ; null à l'index des lignes {cooldown}
+        public final List<String> cooldownTemplates; // template brut des lignes {cooldown} (même index)
+
         public BoostConfig(String id, int slot, String material, String displayName,
                            List<String> lore, String effect, int amplifier,
                            long durationSeconds, boolean glow) {
@@ -169,6 +180,22 @@ public class ConfigManager {
             this.amplifier = amplifier;
             this.durationSeconds = durationSeconds;
             this.glow = glow;
+
+            this.colorizedDisplayName = dev.dr4.booster.utils.ColorUtils.colorize(displayName);
+
+            List<String> sLore  = new java.util.ArrayList<>(lore.size());
+            List<String> cdTmpl = new java.util.ArrayList<>(lore.size());
+            for (String line : lore) {
+                if (line.contains("{cooldown}")) {
+                    sLore.add(null);          // sera remplacé dynamiquement
+                    cdTmpl.add(line);         // template brut conservé
+                } else {
+                    sLore.add(dev.dr4.booster.utils.ColorUtils.colorize(line));
+                    cdTmpl.add(null);
+                }
+            }
+            this.staticLore      = java.util.Collections.unmodifiableList(sLore);
+            this.cooldownTemplates = java.util.Collections.unmodifiableList(cdTmpl);
         }
     }
 
