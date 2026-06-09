@@ -271,8 +271,8 @@ reset-cooldown:
   slot: 31
   material: LIME_DYE
   display-name: '&#00FF00&lRESET COOLDOWN'
-  # Cout en monnaie Vault (verif + retrait automatique via l'API Economy)
-  cost: 500.0
+  # Cout en shards DonutShards (verif + retrait automatique via ShardsAPI)
+  cost: 500
   # Texte affiche dans le lore a la place de {cost}
   cost-display: '&#FF258F500x'
   lore:
@@ -294,8 +294,8 @@ messages:
   boost-activated: '&#00C1FFBoost &#FFE89D{boost} &#00C1FFactive pour &#FFE89D{duration}&#00C1FF!'
   cooldown-active: '&#FF005DTu dois attendre &#FF0000{remaining} &#FF005Davant de reUtiliser ce boost.'
   reset-success: '&#00FF00Ton cooldown a ete reinitialise!'
-  no-money: '&#FF0000Solde insuffisant. Il te faut &#FF5500{cost} &#FF0000pour reset ton cooldown.'
-  vault-unavailable: '&#FF0000Vault n''est pas disponible sur ce serveur.'
+  no-money: '&#FF0000Solde insuffisant. Il te faut &#FF5500{cost} shards &#FF0000pour reset ton cooldown.'
+  shards-unavailable: '&#FF0000DonutShards n''est pas disponible sur ce serveur.'
   no-permission: '&#FF0000Tu n''as pas la permission d''utiliser ca.'
   reload-success: '&#00FF00Plugin rechargé avec succes.'
   player-not-found: '&#FF0000Joueur introuvable.'

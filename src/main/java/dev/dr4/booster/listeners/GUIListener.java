@@ -4,7 +4,6 @@ import dev.dr4.booster.BoosterPlugin;
 import dev.dr4.booster.managers.ConfigManager;
 import dev.dr4.booster.managers.EconomyManager;
 import dev.dr4.booster.utils.ColorUtils;
-import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -85,28 +84,26 @@ public class GUIListener implements Listener {
         ConfigManager cfg = plugin.getConfigManager();
         EconomyManager eco = plugin.getEconomyManager();
 
-        // 1. Vault disponible ?
+        // 1. DonutShards disponible ?
         if (!eco.isHooked()) {
             player.sendMessage(cfg.getMsgPrefix()
-                    + ColorUtils.colorize(cfg.getMsgVaultUnavailable()));
+                    + ColorUtils.colorize(cfg.getMsgShardsUnavailable()));
             return;
         }
 
-        double cost = rc.cost;
+        long cost = rc.cost;
 
         // 2. Solde suffisant ?
         if (!eco.has(player, cost)) {
-            String costFormatted = eco.currencyName(cost);
-            String msg = cfg.formatMessage(cfg.getMsgNoMoney(), Map.of("cost", costFormatted));
+            String msg = cfg.formatMessage(cfg.getMsgNoMoney(), Map.of("cost", String.valueOf(cost)));
             player.sendMessage(cfg.getMsgPrefix() + msg);
             return;
         }
 
-        // 3. Retrait — on vérifie que la transaction a réellement abouti
-        EconomyResponse response = eco.withdraw(player, cost);
-        if (!response.transactionSuccess()) {
+        // 3. Retrait — ShardsAPI.take() vérifie le solde atomiquement
+        if (!eco.withdraw(player, cost)) {
             player.sendMessage(cfg.getMsgPrefix()
-                    + ColorUtils.colorize("&#FF0000Transaction echouee : " + response.errorMessage));
+                    + ColorUtils.colorize("&#FF0000Transaction echouee — solde insuffisant."));
             return;
         }
 

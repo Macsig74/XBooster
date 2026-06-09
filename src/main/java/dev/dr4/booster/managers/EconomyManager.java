@@ -1,71 +1,54 @@
 package dev.dr4.booster.managers;
 
 import dev.dr4.booster.BoosterPlugin;
-import net.milkbowl.vault.economy.Economy;
-import net.milkbowl.vault.economy.EconomyResponse;
+import dev.dr4.booster.utils.ShardsAPI;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.RegisteredServiceProvider;
 
+/**
+ * Thin wrapper around DonutShards — replaces the previous Vault integration.
+ * Uses the reflection bridge (ShardsAPI) so DonutShards is a soft-dependency
+ * with zero compile-time coupling.
+ */
 public class EconomyManager {
 
     private final BoosterPlugin plugin;
-    private Economy economy;
 
     public EconomyManager(BoosterPlugin plugin) {
         this.plugin = plugin;
     }
 
     /**
-     * Attempts to hook into a Vault Economy provider.
+     * Attempts to connect to DonutShards.
      *
-     * @return true if a provider was found and hooked successfully.
+     * @return true if DonutShards is present and hooked successfully.
      */
     public boolean hook() {
-        if (plugin.getServer().getPluginManager().getPlugin("Vault") == null) {
-            plugin.getLogger().warning("Vault introuvable — le bouton Reset Cooldown sera desactive.");
+        ShardsAPI.reset(); // force fresh lookup after (re)load
+        if (ShardsAPI.available()) {
+            plugin.getLogger().info("DonutShards hooke avec succes.");
+            return true;
+        } else {
+            plugin.getLogger().warning("DonutShards introuvable — le bouton Reset Cooldown sera desactive.");
             return false;
         }
-
-        RegisteredServiceProvider<Economy> rsp =
-                plugin.getServer().getServicesManager().getRegistration(Economy.class);
-
-        if (rsp == null) {
-            plugin.getLogger().warning("Aucun provider Economy trouve dans Vault — le bouton Reset Cooldown sera desactive.");
-            return false;
-        }
-
-        economy = rsp.getProvider();
-        plugin.getLogger().info("Vault Economy hooke : " + economy.getName());
-        return true;
     }
 
-    /**
-     * Returns true if Vault is available and a provider is hooked.
-     */
+    /** True if DonutShards is available. */
     public boolean isHooked() {
-        return economy != null;
+        return ShardsAPI.available();
+    }
+
+    /** True if the player has at least {@code amount} shards. */
+    public boolean has(Player player, long amount) {
+        return ShardsAPI.has(player.getUniqueId(), amount);
     }
 
     /**
-     * Returns true if the player has at least {@code amount} in their balance.
-     */
-    public boolean has(Player player, double amount) {
-        return isHooked() && economy.has(player, amount);
-    }
-
-    /**
-     * Withdraws {@code amount} from the player.
+     * Withdraws {@code amount} shards from the player.
      *
-     * @return the EconomyResponse — always check {@link EconomyResponse#transactionSuccess()}.
+     * @return true if the transaction succeeded (player had enough shards).
      */
-    public EconomyResponse withdraw(Player player, double amount) {
-        return economy.withdrawPlayer(player, amount);
-    }
-
-    /**
-     * Human-readable name of the currency as provided by the Economy plugin.
-     */
-    public String currencyName(double amount) {
-        return isHooked() ? economy.format(amount) : String.valueOf(amount);
+    public boolean withdraw(Player player, long amount) {
+        return ShardsAPI.take(player.getUniqueId(), amount);
     }
 }

@@ -26,7 +26,7 @@ public class ConfigManager {
     private String msgCooldownActive;
     private String msgResetSuccess;
     private String msgNoMoney;
-    private String msgVaultUnavailable;
+    private String msgShardsUnavailable;
     private String msgNoPermission;
     private String msgReloadSuccess;
     private String msgPlayerNotFound;
@@ -82,7 +82,7 @@ public class ConfigManager {
                     rc.getString("material", "LIME_DYE"),
                     rc.getString("display-name", "&#00FF00&lRESET COOLDOWN"),
                     rc.getStringList("lore"),
-                    rc.getDouble("cost", 500.0),
+                    rc.getLong("cost", 500L),
                     rc.getString("cost-display", "500x")
             );
         } else {
@@ -93,8 +93,8 @@ public class ConfigManager {
         msgBoostActivated = cfg.getString("messages.boost-activated", "Boost {boost} active pour {duration}!");
         msgCooldownActive = cfg.getString("messages.cooldown-active", "Attends {remaining}.");
         msgResetSuccess = cfg.getString("messages.reset-success", "Cooldown reinitialise!");
-        msgNoMoney = cfg.getString("messages.no-money", "&#FF0000Solde insuffisant. Il te faut {cost}.");
-        msgVaultUnavailable = cfg.getString("messages.vault-unavailable", "&#FF0000Vault n'est pas disponible.");
+        msgNoMoney = cfg.getString("messages.no-money", "&#FF0000Solde insuffisant. Il te faut {cost} shards.");
+        msgShardsUnavailable = cfg.getString("messages.shards-unavailable", "&#FF0000DonutShards n'est pas disponible sur ce serveur.");
         msgNoPermission = cfg.getString("messages.no-permission", "Permission refusee.");
         msgReloadSuccess = cfg.getString("messages.reload-success", "Plugin rechargé.");
         msgPlayerNotFound = cfg.getString("messages.player-not-found", "Joueur introuvable.");
@@ -132,8 +132,8 @@ public class ConfigManager {
     public String getMsgBoostActivated(){ return msgBoostActivated; }
     public String getMsgCooldownActive(){ return msgCooldownActive; }
     public String getMsgResetSuccess()     { return msgResetSuccess; }
-    public String getMsgNoMoney()          { return msgNoMoney; }
-    public String getMsgVaultUnavailable() { return msgVaultUnavailable; }
+    public String getMsgNoMoney()              { return msgNoMoney; }
+    public String getMsgShardsUnavailable()    { return msgShardsUnavailable; }
     public String getMsgNoPermission()     { return msgNoPermission; }
     public String getMsgReloadSuccess(){ return msgReloadSuccess; }
     public String getMsgPlayerNotFound(){ return msgPlayerNotFound; }
@@ -171,11 +171,11 @@ public class ConfigManager {
         public final String material;
         public final String displayName;
         public final List<String> lore;
-        public final double cost;
+        public final long cost;
         public final String costDisplay;
 
         public ResetConfig(int slot, String material, String displayName,
-                           List<String> lore, double cost, String costDisplay) {
+                           List<String> lore, long cost, String costDisplay) {
             this.slot = slot;
             this.material = material;
             this.displayName = displayName;

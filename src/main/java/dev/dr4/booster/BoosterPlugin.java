@@ -38,7 +38,7 @@ public final class BoosterPlugin extends JavaPlugin {
         }
 
         economyManager = new EconomyManager(this);
-        economyManager.hook(); // soft — plugin continues even if Vault absent
+        economyManager.hook(); // soft — plugin continues even if DonutShards absent
 
         boostManager = new BoostManager(this);
         boostManager.load();
