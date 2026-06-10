@@ -1,6 +1,7 @@
 package dev.dr4.booster.listeners;
 
 import dev.dr4.booster.BoosterPlugin;
+import dev.dr4.booster.managers.BoostManager;
 import dev.dr4.booster.managers.ConfigManager;
 import dev.dr4.booster.managers.EconomyManager;
 import dev.dr4.booster.utils.ColorUtils;
@@ -50,47 +51,39 @@ public class GUIListener implements Listener {
 
     private void handleBoost(Player player, ConfigManager.BoostConfig boost) {
         ConfigManager cfg = plugin.getConfigManager();
+        BoostManager  bm  = plugin.getBoostManager();
 
-        // 1. Permission
-        if (!player.hasPermission("booster.use")) {
-            player.sendMessage(cfg.getMsgPrefix() + ColorUtils.colorize(cfg.getMsgNoPermission()));
-            return;
+        BoostManager.ActivationResult result = bm.tryActivate(player, boost);
+
+        switch (result) {
+            case NO_PERMISSION ->
+                player.sendMessage(cfg.getMsgPrefix() + ColorUtils.colorize(cfg.getMsgNoPermission()));
+
+            case LOCKDOWN ->
+                player.sendMessage(cfg.getMsgPrefix() + ColorUtils.colorize(cfg.getMsgLockdown()));
+
+            case ON_COOLDOWN -> {
+                long remaining = bm.getRemainingCooldown(player, boost.id);
+                String msg = cfg.formatMessage(cfg.getMsgCooldownActive(),
+                        Map.of("remaining", ColorUtils.formatTime(remaining)));
+                player.sendMessage(cfg.getMsgPrefix() + msg);
+            }
+
+            case ALREADY_ACTIVE ->
+                player.sendMessage(cfg.getMsgPrefix() + ColorUtils.colorize(cfg.getMsgBoostAlreadyActive()));
+
+            case EFFECT_ERROR -> {} // logged in BoostManager
+
+            case SUCCESS -> {
+                String msg = cfg.formatMessage(cfg.getMsgBoostActivated(), Map.of(
+                        "boost",    ColorUtils.strip(boost.displayName),
+                        "duration", ColorUtils.formatTime(boost.durationSeconds)
+                ));
+                player.sendMessage(cfg.getMsgPrefix() + msg);
+                // Folia-safe: already on the player's region thread inside an event
+                plugin.getBoosterGUI().open(player);
+            }
         }
-
-        // 2. Lockdown
-        if (plugin.isLockdown()) {
-            player.sendMessage(cfg.getMsgPrefix() + ColorUtils.colorize(cfg.getMsgLockdown()));
-            return;
-        }
-
-        // 3. Cooldown
-        if (!player.hasPermission("booster.bypass") && plugin.getBoostManager().hasCooldown(player, boost.id)) {
-            long remaining = plugin.getBoostManager().getRemainingCooldown(player, boost.id);
-            String msg = cfg.formatMessage(cfg.getMsgCooldownActive(),
-                    Map.of("remaining", ColorUtils.formatTime(remaining)));
-            player.sendMessage(cfg.getMsgPrefix() + msg);
-            return;
-        }
-
-        // 4. Anti-cumul — un seul boost actif à la fois
-        if (!player.hasPermission("booster.bypass") && plugin.getBoostManager().hasActiveBoost(player)) {
-            player.sendMessage(cfg.getMsgPrefix() + ColorUtils.colorize(cfg.getMsgBoostAlreadyActive()));
-            return;
-        }
-
-        // 5. Apply
-        if (!plugin.getBoostManager().applyBoost(player, boost)) return;
-
-        plugin.getBoostManager().setCooldown(player, boost.id);
-
-        String msg = cfg.formatMessage(cfg.getMsgBoostActivated(), Map.of(
-                "boost",    ColorUtils.strip(boost.displayName),
-                "duration", ColorUtils.formatTime(boost.durationSeconds)
-        ));
-        player.sendMessage(cfg.getMsgPrefix() + msg);
-
-        // Folia-safe: already on the player's region thread inside an event
-        plugin.getBoosterGUI().open(player);
     }
 
     private void handleReset(Player player, ConfigManager.ResetConfig rc) {

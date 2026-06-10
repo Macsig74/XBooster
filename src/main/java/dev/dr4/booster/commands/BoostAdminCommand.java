@@ -36,10 +36,12 @@ public class BoostAdminCommand implements CommandExecutor, TabCompleter {
         if (args.length == 0) { sendHelp(sender); return true; }
 
         return switch (args[0].toLowerCase()) {
-            case "list"     -> handleList(sender);
-            case "cutall"   -> handleCutAll(sender);
-            case "lockdown" -> handleLockdown(sender);
-            default         -> { sendHelp(sender); yield true; }
+            case "list"         -> handleList(sender);
+            case "cutall"       -> handleCutAll(sender);
+            case "lockdown"     -> handleLockdown(sender);
+            case "placestand"   -> handlePlaceStand(sender, args);
+            case "removestand"  -> handleRemoveStand(sender, args);
+            default             -> { sendHelp(sender); yield true; }
         };
     }
 
@@ -119,13 +121,47 @@ public class BoostAdminCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    // ── /boostadmin placestand <id> ──────────────────────────────────────────
+
+    private boolean handlePlaceStand(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ColorUtils.colorize(PREFIX + "&#FF0000Commande reservee aux joueurs."));
+            return true;
+        }
+        if (args.length < 2) {
+            sender.sendMessage(ColorUtils.colorize(PREFIX + "&7Usage: /boostadmin placestand <boostId>"));
+            return true;
+        }
+        plugin.getBoostStandManager().placeStand(player, args[1].toLowerCase());
+        return true;
+    }
+
+    // ── /boostadmin removestand <id> ─────────────────────────────────────────
+
+    private boolean handleRemoveStand(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(ColorUtils.colorize(PREFIX + "&7Usage: /boostadmin removestand <boostId>"));
+            return true;
+        }
+        String boostId = args[1].toLowerCase();
+        if (!plugin.getBoostStandManager().getStands().containsKey(boostId)) {
+            sender.sendMessage(ColorUtils.colorize(PREFIX + "&#FF0000Aucun stand actif pour: " + boostId));
+            return true;
+        }
+        plugin.getBoostStandManager().removeStand(boostId);
+        sender.sendMessage(ColorUtils.colorize(PREFIX + "&#00FF00Stand &#FFE89D" + boostId + " &#00FF00supprime."));
+        return true;
+    }
+
     // ── Help ─────────────────────────────────────────────────────────────────
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(ColorUtils.colorize(PREFIX + "&7Commandes :"));
-        sender.sendMessage(ColorUtils.colorize("  &f/boostadmin list     &8— &7Voir les boosts actifs"));
-        sender.sendMessage(ColorUtils.colorize("  &f/boostadmin cutall   &8— &7Couper tous les boosts actifs"));
-        sender.sendMessage(ColorUtils.colorize("  &f/boostadmin lockdown &8— &7Activer / desactiver le lockdown"));
+        sender.sendMessage(ColorUtils.colorize("  &f/boostadmin list                 &8— &7Voir les boosts actifs"));
+        sender.sendMessage(ColorUtils.colorize("  &f/boostadmin cutall               &8— &7Couper tous les boosts actifs"));
+        sender.sendMessage(ColorUtils.colorize("  &f/boostadmin lockdown             &8— &7Activer / desactiver le lockdown"));
+        sender.sendMessage(ColorUtils.colorize("  &f/boostadmin placestand <id>      &8— &7Placer un stand de boost ici"));
+        sender.sendMessage(ColorUtils.colorize("  &f/boostadmin removestand <id>     &8— &7Supprimer un stand de boost"));
     }
 
     // ── Tab completion ────────────────────────────────────────────────────────
@@ -135,9 +171,18 @@ public class BoostAdminCommand implements CommandExecutor, TabCompleter {
                                       @NotNull String label, @NotNull String[] args) {
         if (!sender.hasPermission("booster.admin")) return List.of();
         if (args.length == 1) {
-            return Arrays.asList("list", "cutall", "lockdown").stream()
+            return Arrays.asList("list", "cutall", "lockdown", "placestand", "removestand").stream()
                     .filter(s -> s.startsWith(args[0].toLowerCase()))
                     .toList();
+        }
+        // Second arg: boost ID for placestand / removestand
+        if (args.length == 2) {
+            String sub = args[0].toLowerCase();
+            if (sub.equals("placestand") || sub.equals("removestand")) {
+                return plugin.getConfigManager().getBoosts().keySet().stream()
+                        .filter(id -> id.startsWith(args[1].toLowerCase()))
+                        .toList();
+            }
         }
         return List.of();
     }

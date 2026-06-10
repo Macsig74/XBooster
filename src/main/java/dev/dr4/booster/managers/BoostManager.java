@@ -160,6 +160,26 @@ public class BoostManager {
         return Collections.unmodifiableMap(activeBoostId);
     }
 
+    // ── Unified activation (used by GUI and stands) ───────────────────────────
+
+    public enum ActivationResult { SUCCESS, NO_PERMISSION, LOCKDOWN, ON_COOLDOWN, ALREADY_ACTIVE, EFFECT_ERROR }
+
+    /**
+     * Performs all checks and applies the boost if allowed.
+     * Returns SUCCESS if the boost was applied, or an error code otherwise.
+     */
+    public ActivationResult tryActivate(Player player, ConfigManager.BoostConfig boost) {
+        if (!player.hasPermission("booster.use"))              return ActivationResult.NO_PERMISSION;
+        if (plugin.isLockdown())                               return ActivationResult.LOCKDOWN;
+        if (!player.hasPermission("booster.bypass") && hasCooldown(player, boost.id))
+                                                               return ActivationResult.ON_COOLDOWN;
+        if (!player.hasPermission("booster.bypass") && hasActiveBoost(player))
+                                                               return ActivationResult.ALREADY_ACTIVE;
+        if (!applyBoost(player, boost))                        return ActivationResult.EFFECT_ERROR;
+        setCooldown(player, boost.id);
+        return ActivationResult.SUCCESS;
+    }
+
     // ── Effect application ────────────────────────────────────────────────────
 
     public boolean applyBoost(Player player, ConfigManager.BoostConfig cfg) {

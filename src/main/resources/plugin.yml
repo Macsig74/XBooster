@@ -15,7 +15,7 @@ commands:
     aliases: [ boost ]
   boostadmin:
     description: Administration du systeme de boosts
-    usage: /boostadmin <list|cutall|lockdown>
+    usage: /boostadmin <list|cutall|lockdown|placestand|removestand>
     permission: booster.admin
     aliases: [ ba ]
 
