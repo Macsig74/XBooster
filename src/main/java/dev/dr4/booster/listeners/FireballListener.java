@@ -1,34 +1,47 @@
 package dev.dr4.booster.listeners;
 
 import dev.dr4.booster.BoosterPlugin;
+import dev.dr4.booster.items.FireballItem;
 import dev.dr4.booster.managers.BoostManager;
 import dev.dr4.booster.managers.ConfigManager;
 import dev.dr4.booster.utils.ColorUtils;
-import org.bukkit.entity.Interaction;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Map;
 
-public class BoostStandListener implements Listener {
+public class FireballListener implements Listener {
 
     private final BoosterPlugin plugin;
+    private final NamespacedKey pdcKey;
 
-    public BoostStandListener(BoosterPlugin plugin) {
+    public FireballListener(BoosterPlugin plugin) {
         this.plugin = plugin;
+        this.pdcKey = new NamespacedKey(plugin, FireballItem.PDC_KEY);
     }
 
     @EventHandler
-    public void onInteract(PlayerInteractAtEntityEvent event) {
-        // Filter: right-click (hand), Interaction entity only
+    public void onInteract(PlayerInteractEvent event) {
+        // Clic droit uniquement (air ou bloc), main principale seulement
+        Action action = event.getAction();
+        if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getHand() != EquipmentSlot.HAND) return;
-        if (!(event.getRightClicked() instanceof Interaction)) return;
 
-        String boostId = plugin.getBoostStandManager()
-                .getBoostIdByInteraction(event.getRightClicked().getUniqueId());
+        ItemStack item = event.getItem();
+        if (item == null || item.getType() != Material.FIREWORK_STAR) return;
+
+        var meta = item.getItemMeta();
+        if (meta == null) return;
+
+        String boostId = meta.getPersistentDataContainer().get(pdcKey, PersistentDataType.STRING);
         if (boostId == null) return;
 
         event.setCancelled(true);
@@ -37,10 +50,10 @@ public class BoostStandListener implements Listener {
         ConfigManager.BoostConfig boost = plugin.getConfigManager().getBoosts().get(boostId);
         if (boost == null) return;
 
-        activateFromStand(player, boost);
+        activateBoost(player, boost);
     }
 
-    private void activateFromStand(Player player, ConfigManager.BoostConfig boost) {
+    private void activateBoost(Player player, ConfigManager.BoostConfig boost) {
         ConfigManager cfg = plugin.getConfigManager();
         BoostManager  bm  = plugin.getBoostManager();
 
@@ -63,7 +76,7 @@ public class BoostStandListener implements Listener {
             case ALREADY_ACTIVE ->
                 player.sendMessage(cfg.getMsgPrefix() + ColorUtils.colorize(cfg.getMsgBoostAlreadyActive()));
 
-            case EFFECT_ERROR -> {} // logged in BoostManager
+            case EFFECT_ERROR -> {}
 
             case SUCCESS -> {
                 String msg = cfg.formatMessage(cfg.getMsgBoostActivated(), Map.of(

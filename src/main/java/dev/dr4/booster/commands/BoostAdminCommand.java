@@ -1,6 +1,8 @@
 package dev.dr4.booster.commands;
 
 import dev.dr4.booster.BoosterPlugin;
+import dev.dr4.booster.items.FireballItem;
+import dev.dr4.booster.managers.ConfigManager;
 import dev.dr4.booster.utils.ColorUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -36,12 +38,11 @@ public class BoostAdminCommand implements CommandExecutor, TabCompleter {
         if (args.length == 0) { sendHelp(sender); return true; }
 
         return switch (args[0].toLowerCase()) {
-            case "list"         -> handleList(sender);
-            case "cutall"       -> handleCutAll(sender);
-            case "lockdown"     -> handleLockdown(sender);
-            case "placestand"   -> handlePlaceStand(sender, args);
-            case "removestand"  -> handleRemoveStand(sender, args);
-            default             -> { sendHelp(sender); yield true; }
+            case "list"     -> handleList(sender);
+            case "cutall"   -> handleCutAll(sender);
+            case "lockdown" -> handleLockdown(sender);
+            case "give"     -> handleGive(sender, args);
+            default         -> { sendHelp(sender); yield true; }
         };
     }
 
@@ -101,7 +102,6 @@ public class BoostAdminCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(ColorUtils.colorize(
                 PREFIX + "&#FF0000LOCKDOWN ACTIVE — les boosts sont desactives pour tous les joueurs."
             ));
-            // Prévenir les joueurs en ligne
             for (Player p : Bukkit.getOnlinePlayers()) {
                 if (!p.hasPermission("booster.admin")) {
                     p.sendMessage(ColorUtils.colorize(
@@ -121,47 +121,61 @@ public class BoostAdminCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
-    // ── /boostadmin placestand <id> ──────────────────────────────────────────
+    // ── /boostadmin give <joueur> [boostId] ──────────────────────────────────
+    // Sans boostId : donne toutes les boules d'artifice de boost.
+    // Avec boostId : donne uniquement ce boost.
 
-    private boolean handlePlaceStand(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage(ColorUtils.colorize(PREFIX + "&#FF0000Commande reservee aux joueurs."));
-            return true;
-        }
+    private boolean handleGive(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            sender.sendMessage(ColorUtils.colorize(PREFIX + "&7Usage: /boostadmin placestand <boostId>"));
+            sender.sendMessage(ColorUtils.colorize(PREFIX + "&7Usage: /boostadmin give <joueur> [boostId]"));
             return true;
         }
-        plugin.getBoostStandManager().placeStand(player, args[1].toLowerCase());
+
+        Player target = Bukkit.getPlayerExact(args[1]);
+        if (target == null) {
+            sender.sendMessage(ColorUtils.colorize(
+                PREFIX + "&#FF0000Joueur introuvable: &f" + args[1]));
+            return true;
+        }
+
+        Map<String, ConfigManager.BoostConfig> boosts = plugin.getConfigManager().getBoosts();
+
+        if (args.length >= 3) {
+            // Un seul boost
+            String boostId = args[2].toLowerCase();
+            ConfigManager.BoostConfig boost = boosts.get(boostId);
+            if (boost == null) {
+                sender.sendMessage(ColorUtils.colorize(
+                    PREFIX + "&#FF0000Boost inconnu: &f" + boostId));
+                return true;
+            }
+            giveItem(target, boost);
+            sender.sendMessage(ColorUtils.colorize(
+                PREFIX + "&#00FF00Boule &b" + boostId + " &#00FF00donnee a &f" + target.getName()));
+        } else {
+            // Tous les boosts
+            for (ConfigManager.BoostConfig boost : boosts.values()) {
+                giveItem(target, boost);
+            }
+            sender.sendMessage(ColorUtils.colorize(
+                PREFIX + "&#00FF00" + boosts.size() + " boule(s) de boost donnee(s) a &f" + target.getName()));
+        }
+
         return true;
     }
 
-    // ── /boostadmin removestand <id> ─────────────────────────────────────────
-
-    private boolean handleRemoveStand(CommandSender sender, String[] args) {
-        if (args.length < 2) {
-            sender.sendMessage(ColorUtils.colorize(PREFIX + "&7Usage: /boostadmin removestand <boostId>"));
-            return true;
-        }
-        String boostId = args[1].toLowerCase();
-        if (!plugin.getBoostStandManager().getStands().containsKey(boostId)) {
-            sender.sendMessage(ColorUtils.colorize(PREFIX + "&#FF0000Aucun stand actif pour: " + boostId));
-            return true;
-        }
-        plugin.getBoostStandManager().removeStand(boostId);
-        sender.sendMessage(ColorUtils.colorize(PREFIX + "&#00FF00Stand &#FFE89D" + boostId + " &#00FF00supprime."));
-        return true;
+    private void giveItem(Player target, ConfigManager.BoostConfig boost) {
+        target.getInventory().addItem(FireballItem.build(plugin, boost));
     }
 
     // ── Help ─────────────────────────────────────────────────────────────────
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(ColorUtils.colorize(PREFIX + "&7Commandes :"));
-        sender.sendMessage(ColorUtils.colorize("  &f/boostadmin list                 &8— &7Voir les boosts actifs"));
-        sender.sendMessage(ColorUtils.colorize("  &f/boostadmin cutall               &8— &7Couper tous les boosts actifs"));
-        sender.sendMessage(ColorUtils.colorize("  &f/boostadmin lockdown             &8— &7Activer / desactiver le lockdown"));
-        sender.sendMessage(ColorUtils.colorize("  &f/boostadmin placestand <id>      &8— &7Placer un stand de boost ici"));
-        sender.sendMessage(ColorUtils.colorize("  &f/boostadmin removestand <id>     &8— &7Supprimer un stand de boost"));
+        sender.sendMessage(ColorUtils.colorize("  &f/boostadmin list                   &8— &7Voir les boosts actifs"));
+        sender.sendMessage(ColorUtils.colorize("  &f/boostadmin cutall                 &8— &7Couper tous les boosts actifs"));
+        sender.sendMessage(ColorUtils.colorize("  &f/boostadmin lockdown               &8— &7Activer / desactiver le lockdown"));
+        sender.sendMessage(ColorUtils.colorize("  &f/boostadmin give <joueur> [boost]  &8— &7Donner une/toutes les boules de boost"));
     }
 
     // ── Tab completion ────────────────────────────────────────────────────────
@@ -170,20 +184,26 @@ public class BoostAdminCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                       @NotNull String label, @NotNull String[] args) {
         if (!sender.hasPermission("booster.admin")) return List.of();
+
         if (args.length == 1) {
-            return Arrays.asList("list", "cutall", "lockdown", "placestand", "removestand").stream()
+            return Arrays.asList("list", "cutall", "lockdown", "give").stream()
                     .filter(s -> s.startsWith(args[0].toLowerCase()))
                     .toList();
         }
-        // Second arg: boost ID for placestand / removestand
-        if (args.length == 2) {
-            String sub = args[0].toLowerCase();
-            if (sub.equals("placestand") || sub.equals("removestand")) {
-                return plugin.getConfigManager().getBoosts().keySet().stream()
-                        .filter(id -> id.startsWith(args[1].toLowerCase()))
-                        .toList();
-            }
+
+        if (args.length == 2 && args[0].equalsIgnoreCase("give")) {
+            return Bukkit.getOnlinePlayers().stream()
+                    .map(Player::getName)
+                    .filter(n -> n.toLowerCase().startsWith(args[1].toLowerCase()))
+                    .toList();
         }
+
+        if (args.length == 3 && args[0].equalsIgnoreCase("give")) {
+            return plugin.getConfigManager().getBoosts().keySet().stream()
+                    .filter(id -> id.startsWith(args[2].toLowerCase()))
+                    .toList();
+        }
+
         return List.of();
     }
 }

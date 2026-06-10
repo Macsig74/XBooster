@@ -3,23 +3,21 @@ package dev.dr4.booster;
 import dev.dr4.booster.commands.BoostAdminCommand;
 import dev.dr4.booster.commands.BoosterCommand;
 import dev.dr4.booster.gui.BoosterGUI;
-import dev.dr4.booster.listeners.BoostStandListener;
+import dev.dr4.booster.listeners.FireballListener;
 import dev.dr4.booster.listeners.GUIListener;
 import dev.dr4.booster.managers.BoostManager;
 import dev.dr4.booster.managers.ConfigManager;
 import dev.dr4.booster.managers.EconomyManager;
 import dev.dr4.booster.managers.LicenseManager;
-import dev.dr4.booster.stands.BoostStandManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class BoosterPlugin extends JavaPlugin {
 
-    private ConfigManager    configManager;
-    private BoostManager     boostManager;
-    private LicenseManager   licenseManager;
-    private EconomyManager   economyManager;
-    private BoosterGUI       boosterGUI;
-    private BoostStandManager boostStandManager;
+    private ConfigManager  configManager;
+    private BoostManager   boostManager;
+    private LicenseManager licenseManager;
+    private EconomyManager economyManager;
+    private BoosterGUI     boosterGUI;
 
     private String  licenseKey = "";
     private volatile boolean lockdown = false;
@@ -62,16 +60,12 @@ public final class BoosterPlugin extends JavaPlugin {
         }
 
         getServer().getPluginManager().registerEvents(new GUIListener(this), this);
-
-        boostStandManager = new BoostStandManager(this);
-        boostStandManager.loadAll();
-        getServer().getPluginManager().registerEvents(new BoostStandListener(this), this);
+        getServer().getPluginManager().registerEvents(new FireballListener(this), this);
     }
 
     @Override
     public void onDisable() {
-        if (boostStandManager != null) boostStandManager.unloadAll();
-        if (boostManager      != null) boostManager.save();
+        if (boostManager != null) boostManager.save();
     }
 
     public String          getLicenseKey()     { return licenseKey; }
@@ -83,6 +77,4 @@ public final class BoosterPlugin extends JavaPlugin {
 
     public boolean isLockdown()               { return lockdown; }
     public void    setLockdown(boolean state) { this.lockdown = state; }
-
-    public BoostStandManager getBoostStandManager() { return boostStandManager; }
 }

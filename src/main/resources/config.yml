@@ -267,15 +267,6 @@ boosts:
     glow: true
 
 # ============================================================
-#  Stands en monde (boules de feu cliquables)
-# ============================================================
-boost-stands:
-  enabled: false
-  # Pour placer un stand: /boostadmin placestand <boostId>  (debout a l'emplacement voulu)
-  # Pour supprimer:       /boostadmin removestand <boostId>
-  boosts: {}
-
-# ============================================================
 #  Reset du cooldown
 # ============================================================
 reset-cooldown:
