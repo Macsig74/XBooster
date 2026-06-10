@@ -50,10 +50,10 @@ public class FireballListener implements Listener {
         ConfigManager.BoostConfig boost = plugin.getConfigManager().getBoosts().get(boostId);
         if (boost == null) return;
 
-        activateBoost(player, boost);
+        activateBoost(player, boost, item);
     }
 
-    private void activateBoost(Player player, ConfigManager.BoostConfig boost) {
+    private void activateBoost(Player player, ConfigManager.BoostConfig boost, ItemStack item) {
         ConfigManager cfg = plugin.getConfigManager();
         BoostManager  bm  = plugin.getBoostManager();
 
@@ -79,6 +79,12 @@ public class FireballListener implements Listener {
             case EFFECT_ERROR -> {}
 
             case SUCCESS -> {
+                // Consomme l'item (1 use only)
+                if (item.getAmount() > 1) {
+                    item.setAmount(item.getAmount() - 1);
+                } else {
+                    player.getInventory().setItemInMainHand(null);
+                }
                 String msg = cfg.formatMessage(cfg.getMsgBoostActivated(), Map.of(
                         "boost",    ColorUtils.strip(boost.displayName),
                         "duration", ColorUtils.formatTime(boost.durationSeconds)
